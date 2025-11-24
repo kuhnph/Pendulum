@@ -1,17 +1,23 @@
 import matplotlib.pyplot as plt
 import dill
 import numpy as np
-from matplotlib.animation import FuncAnimation
+import os
+import sys
+import matplotlib.animation as animation
+# get project root (one directory up from /src)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# path to the assets folder
+ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
+sys.path.append(ASSETS_DIR)
 
-def create_figure(xmin=-3, xmax=3, ymin=-3, ymax=3, height=4, width=4):
+def create_figure(xmin=-3, xmax=3, ymin=-3, ymax=3, height=5, width=5):
     fig, ax = plt.subplots()
     ax.set_xlim(xmin,xmax)
     ax.set_ylim(ymin,ymax)
     fig.set_size_inches(height,width)
-
     return fig, ax
 
-class animation():
+class pendAnimation():
     def __init__(self, Ls):
             self.Ls = Ls
             self.init = False
@@ -20,7 +26,7 @@ class animation():
             self.x_history = []
             self.y_history = []
 
-    def animate(self, state, T, fig, ax):
+    def pendAnimate(self, state, T, fig, ax):
         thetas = [state[i][0] for i in range(len(self.Ls))]
         
         for i in range(len(self.Ls)):
@@ -60,7 +66,7 @@ class pendulum():
         self.state = []
         self.ms = ms
         self.Ls = Ls
-        self.thetaddots_F = [dill.load(open(f"thetaddot{i}_F", 'rb')) for i in range((len(ms)))]
+        self.thetaddots_F = [dill.load(open(os.path.join(ASSETS_DIR,f"thetaddot{i}_F"), 'rb')) for i in range((len(ms)))]
     def f(self, state):
         states = [state[i][0] for i in range(len(state))]
         states_vars = states+self.ms+self.Ls
@@ -77,24 +83,28 @@ class pendulum():
         return state
 
 class update():
-    def __init__(self, state0s, Lss, mss, T_total, fig, ax, fps=24):
+    def __init__(self, state0s, Lss, mss, T_total, fig, ax, fps=30):
         self.Lss = Lss
         self.mss = mss
-        self.Ts = T_total/(fps*T_total)
+        self.Ts = 1/fps
         self.T_total = T_total
         self.fig = fig
         self.ax = ax
         self.states = [i for i in state0s]
-        self.anis = [animation(Lss[i]) for i in range(len(self.states))]
+        self.anis = [pendAnimation(Lss[i]) for i in range(len(self.states))]
         self.pens = [pendulum(mss[i], Lss[i]) for i in range(len(self.states))]
         self.T = 0
         self.fps = fps
     def update(self, i):
         self.T = self.Ts+self.T
         for i in range(len(self.states)): self.states[i] = self.pens[i].rk4_step(self.states[i], self.Ts)
-        artists = [self.anis[i].animate(self.states[i], self.T, self.fig, self.ax) for i in range(len(self.states))]
+        artists = [self.anis[i].pendAnimate(self.states[i], self.T, self.fig, self.ax) for i in range(len(self.states))]
         return np.hstack(artists)
-    def funk(self, save=True):
-        anim = FuncAnimation(self.fig, self.update,
-                        frames=int(self.T_total/self.Ts), interval=self.Ts, blit=True)
-        anim.save('pendulum.gif', "Pillow", self.fps)
+    def funk(self, playback_speed=1.0, save=True):
+        frameCount = int(self.T_total/self.Ts)
+        interval_ms = (1000 / self.fps) / playback_speed
+
+        print(f'saving\ntotal frames: {frameCount}')
+        anim = animation.FuncAnimation(self.fig, self.update,
+                        frames=frameCount, interval=interval_ms, blit=True)
+        anim.save('pendulum.gif', writer='imagemagick', fps=60)

@@ -1,6 +1,13 @@
 import matplotlib.pyplot as plt
 import dill
 import numpy as np
+import os
+import sys
+# get project root (one directory up from /src)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# path to the assets folder
+ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
+sys.path.append(ASSETS_DIR)
 
 def create_figure(xmin=-3, xmax=3, ymin=-3, ymax=3, height=4, width=4):
     fig, ax = plt.subplots()
@@ -71,7 +78,7 @@ class pendulum():
         self.state = []
         self.ms = ms
         self.Ls = Ls
-        self.thetaddots_F = [dill.load(open(f"thetaddot{i}_F", 'rb')) for i in range((len(ms)))]
+        self.thetaddots_F = [dill.load(open(os.path.join(ASSETS_DIR , f"thetaddot{i}_F"), 'rb')) for i in range((len(ms)))]
     def f(self, state):
         states = [state[i][0] for i in range(len(state))]
         states_vars = states+self.ms+self.Ls
