@@ -12,7 +12,7 @@ import os
 dill.settings['recurse'] = True
 
 #INPUTS
-links = 2
+links = 5
 g = 9.81
 
 #Pre-allocate arrays for use in equations of motion

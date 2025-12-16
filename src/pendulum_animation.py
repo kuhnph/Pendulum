@@ -9,7 +9,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
 sys.path.append(ASSETS_DIR)
 
-def create_figure(xmin=-3, xmax=3, ymin=-3, ymax=3, height=4, width=4):
+def create_figure(xmin=-3, xmax=3, ymin=-3, ymax=3, height=6, width=6):
     fig, ax = plt.subplots()
     ax.set_xlim(xmin,xmax)
     ax.set_ylim(ymin,ymax)
@@ -91,7 +91,7 @@ class pendulum():
         F2 = self.f(state + Ts / 2 * F1)
         F3 = self.f(state + Ts / 2 * F2)
         F4 = self.f(state + Ts * F3)
-        state += Ts / 6 * (F1 + 2 * F2 + 2 * F3 + F4)
+        state = state + Ts / 6 * (F1 + 2 * F2 + 2 * F3 + F4)
         return state
 
 def update(state0s, Lss, mss, Ts, T_total, fig, ax, bg):
